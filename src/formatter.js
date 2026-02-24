@@ -18,7 +18,7 @@ function formatStream(stream, providerName) {
     else if (!quality || quality.toLowerCase() === 'auto') quality = 'Unknown';
     
     // Format title with emoji
-    let title = `📁 ${stream.title || 'Stream'}`;
+    let title = `🕋 ${stream.title || 'Stream'}`;
 
     // Extract language if not present
     let language = stream.language;
