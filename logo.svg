@@ -1,3 +1,13 @@
-svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
   <!-- Fundal rotund dark -->
   ircle cx="128" cy="128" r="115" fill="#1e1e24" stroke="#8a5aeb" stroke-width="6"/>
+  
+  <!-- Unda de streaming 1 (Cyan) -->
+  <path d="M 85 85 A 60 60 0 0 1 85 171" fill="none" stroke="#00e5ff" stroke-width="8" stroke-linecap="round"/>
+  
+  <!-- Unda de streaming 2 (Mov) -->
+  <path d="M 55 55 A 100 100 0 0 1 55 201" fill="none" stroke="#8a5aeb" stroke-width="8" stroke-linecap="round"/>
+  
+  <!-- Buton de Play -->
+  <polygon points="120,95 120,161 175,128" fill="#ffffff"/>
+</svg>
