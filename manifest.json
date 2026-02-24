@@ -1,6 +1,6 @@
 {
   "name": "EasyStreams",
-  "version": "1.0.42",
+  "version": "2.0.0",
   "logo": "https://raw.githubusercontent.com/drg25ii/easystreams/main/public/logo.svg",
   "scrapers": [
     {
