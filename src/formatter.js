@@ -10,11 +10,11 @@ function formatStream(stream, providerName) {
 
     // Format resolution
     let quality = stream.quality || '';
-    if (quality === '2160p') quality = '🔥4K UHD';
-    else if (quality === '1440p') quality = '✨ QHD';
-    else if (quality === '1080p') quality = '🚀 FHD';
-    else if (quality === '720p') quality = '💿 HD';
-    else if (quality === '576p' || quality === '480p' || quality === '360p' || quality === '240p') quality = '💩 Low Quality';
+    if (quality === '2160p') quality = '4K UHD';
+    else if (quality === '1440p') quality = 'QHD';
+    else if (quality === '1080p') quality = 'FHD';
+    else if (quality === '720p') quality = 'HD';
+    else if (quality === '576p' || quality === '480p' || quality === '360p' || quality === '240p') quality = 'Low Quality';
     else if (!quality || quality.toLowerCase() === 'auto') quality = 'Unknown';
     
     // Format title with emoji
@@ -35,7 +35,7 @@ function formatStream(stream, providerName) {
     const desc = details.join(' | ');
     
     // Construct Name: Quality + Provider
-    // e.g. "🚀 FHD (📡 AnimeWorld)"
+    // e.g. "FHD (📡 AnimeWorld)"
     // Use stream.name as provider name if it's not the quality, otherwise use providerName
     // In providers, stream.name is often the server name (e.g. "VixCloud")
     let pName = stream.name || stream.server || providerName;
