@@ -1,93 +1,156 @@
 
-function formatStream(stream, providerName) {
-    // 1. Filter MixDrop (removed from shared formatter, handled in Stremio addon separately)
-    // const server = (stream.server || "").toLowerCase();
-    // const sName = (stream.name || "").toLowerCase();
-    // const sTitle = (stream.title || "").toLowerCase();
-    // if (server.includes('mixdrop') || sName.includes('mixdrop') || sTitle.includes('mixdrop')) {
-    //     return null;
-    // }
+function formatStream(stream, providerName, options = {}) {
 
-    // Format resolution
-    let quality = stream.quality || '';
-    if (quality === '2160p') quality = '4K UHD';
-    else if (quality === '1440p') quality = 'QHD';
-    else if (quality === '1080p') quality = 'FHD';
-    else if (quality === '720p') quality = 'HD';
-    else if (quality === '576p' || quality === '480p' || quality === '360p' || quality === '240p') quality = 'Low Quality';
-    else if (!quality || quality.toLowerCase() === 'auto') quality = 'Unknown';
-    
-    // Format title with emoji
-    let title = `📁 ${stream.title || 'Stream'}`;
+    // ─── HELPERS ────────────────────────────────────────────────
+    const resolutionValues = ['2160p','1440p','1080p','720p','576p','480p','360p','240p','144p'];
 
-    // Extract language if not present
-    let language = stream.language;
-    if (!language) {
-        if (stream.name && (stream.name.includes('SUB ITA') || stream.name.includes('SUB'))) language = '🇯🇵 🇮🇹';
-        else if (stream.title && (stream.title.includes('SUB ITA') || stream.title.includes('SUB'))) language = '🇯🇵 🇮🇹';
-        else language = '🇮🇹';
-    }
-    
-    // Add details
-    let details = [];
-    if (stream.size) details.push(`📦 ${stream.size}`);
-    
-    const desc = details.join(' | ');
-    
-    // Construct Name: Quality + Provider
-    // e.g. "FHD (📡 AnimeWorld)"
-    // Use stream.name as provider name if it's not the quality, otherwise use providerName
-    // In providers, stream.name is often the server name (e.g. "VixCloud")
-    let pName = stream.name || stream.server || providerName;
-    
-    // Clean SUB ITA or ITA from provider name if present
-    if (pName) {
-        pName = pName
-            .replace(/\s*\[?\(?\s*SUB\s*ITA\s*\)?\]?/i, '') // Remove SUB ITA with optional brackets/parens
-            .replace(/\s*\[?\(?\s*ITA\s*\)?\]?/i, '')     // Remove ITA with optional brackets/parens
-            .replace(/\s*\[?\(?\s*SUB\s*\)?\]?/i, '')     // Remove SUB with optional brackets/parens
-            .replace(/\(\s*\)/g, '')                      // Remove empty parentheses
-            .replace(/\[\s*\]/g, '')                      // Remove empty brackets
+    // ─── PROXY / CACHE ──────────────────────────────────────────
+    const isProxied = stream.proxied === true || !!(stream.behaviorHints?.proxyHeaders);
+    const isCached  = stream.cached === true || options.cached === true;
+
+    // ─── RESOLUTION ─────────────────────────────────────────────
+    // stream.resolution ha priorità su stream.quality (legacy)
+    const res = stream.resolution || (resolutionValues.includes(stream.quality) ? stream.quality : '');
+    let resLabel = '';
+    if      (res === '2160p')                                     resLabel = '4K';
+    else if (res === '1440p')                                     resLabel = 'QHD';
+    else if (res === '1080p')                                     resLabel = 'FHD';
+    else if (res === '720p')                                      resLabel = 'HD';
+    else if (['576p','480p','360p','240p','144p'].includes(res))  resLabel = 'Low Quality';
+    else                                                          resLabel = res ? res : 'UNK';
+
+    // ─── ENCODE QUALITY (WEB-DL, BluRay, etc.) ──────────────────
+    // Se stream.quality NON è una risoluzione, è la qualità di encode
+    const encodeQuality = (stream.quality && !resolutionValues.includes(stream.quality))
+        ? stream.quality
+            .replace('BluRay REMUX', 'BluRay Remux')
+            .replace('WEB-DL',       'Web Download')
+            .replace('WEBRip',       'Web Rip')
+            .replace('DVDRip',       'DVD Rip')
+        : '';
+
+    // ─── VISUAL TAGS (DV / HDR) ──────────────────────────────────
+    const visualTags = Array.isArray(stream.visualTags) ? stream.visualTags : [];
+    const hasDV  = visualTags.some(t => /DV/i.test(t));
+    const hasHDR = visualTags.some(t => /HDR/i.test(t));
+    const dvStr  = hasDV ? 'ᵈᵛ' : '';
+    const hdrStr = (hasHDR && !hasDV) ? 'ʰᵈʳ' : '';
+    const visualStr = [dvStr, hdrStr].filter(Boolean).join('');
+
+    // ─── ADDON / PROVIDER NAME ───────────────────────────────────
+    let addonName = stream.name || stream.server || providerName || '';
+    if (addonName) {
+        addonName = addonName
+            .replace(/\s*\\[?\\(?\s*SUB\s*ITA\s*\\)?\\]?/i, '')
+            .replace(/\s*\\[?\\(?\s*ITA\s*\\)?\\]?/i, '')
+            .replace(/\s*\\[?\\(?\s*SUB\s*\\)?\\]?/i, '')
+            .replace(/\\(\s*\\)/g, '')
+            .replace(/\\[\s*\\]/g, '')
             .trim();
     }
-    
-    // Capitalize if using the key name
-    if (pName === providerName) {
-        pName = pName.charAt(0).toUpperCase() + pName.slice(1);
-    }
-    
-    // Add antenna emoji if provider exists
-    if (pName) {
-        pName = `📡 ${pName}`;
+    if (addonName === providerName) {
+        addonName = addonName.charAt(0).toUpperCase() + addonName.slice(1);
     }
 
-    const finalName = quality || pName;
+    // ─── NAME FIELD ──────────────────────────────────────────────
+    // 🔐⚡️ AddonName  FHD ᵈᵛ
+    const proxiedStr = isProxied ? '🔐' : '';
+    const cacheStr   = isCached  ? '⚡️ ' : '⏳ ';
+    const tagSuffix  = visualStr ? ` ${visualStr}` : '';
+    const finalName  = ⁠ ${proxiedStr}${cacheStr}${addonName}  ${resLabel}${tagSuffix} ⁠.trim();
 
-    let titleText = `${title}\n${pName}`;
-    if (desc) titleText += ` | ${desc}`;
-    if (language) titleText += `\n🗣️ ${language}`;
+    // ─── STREAM TYPE ─────────────────────────────────────────────
+    const streamType = (stream.type || '').toLowerCase();
+    const typeLabels = {
+        p2p:       ' 🕋  Type: P2P ',
+        error:     ' 🕋  Type: ERROR ',
+        youtube:   ' 🕋  Type: YOUTUBE ',
+        live:      ' 🕋  Type: LIVE ',
+        http:      ' 🕋  Type: HTTP ',
+        external:  ' 🕋  Type: EXTERNAL ',
+        statistic: ' 🕋  Type: STATS ',
+    };
+    const typeStr = typeLabels[streamType] || '';
 
-    // Move headers to behaviorHints if present, but keep original for compatibility
+    // ─── INDEXER + RELEASE GROUP ─────────────────────────────────
+    let indexerStr = '';
+    if (stream.indexer) {
+        indexerStr = stream.indexer
+            .replace('Comet|',       ' ')
+            .replace('Torrentio|',   ' ')
+            .replace('MediaFusion|', ' ');
+    } else {
+        indexerStr = 'EPC';
+    }
+    if (stream.releaseGroup) {
+        indexerStr += ` | ${stream.releaseGroup.substring(0, 8)}`;
+    }
+
+    // ─── AUDIO ───────────────────────────────────────────────────
+    const audioChannels = Array.isArray(stream.audioChannels) ? stream.audioChannels.join(' ') : '';
+    const audioTags     = Array.isArray(stream.audioTags)     ? stream.audioTags.join(' ')     : '';
+    const audioStr      = [audioChannels, audioTags].filter(Boolean).join(' ');
+
+    // ─── SEADEX ──────────────────────────────────────────────────
+    let seadexStr = '';
+    if (stream.seadexBest === true)                              seadexStr = '🕋  ʙᴇsᴛ ʀᴇʟᴇᴀsᴇ';
+    else if (stream.seadex === true && !stream.seadexBest)      seadexStr = '🕋  ᴀʟᴛ ʙᴇsᴛ ʀᴇʟᴇᴀsᴇ';
+
+    // ─── USENET UNCACHED ─────────────────────────────────────────
+    const isUsenet  = streamType.includes('usenet');
+    const usenetStr = (isUsenet && !isCached) ? '▫ ᴜsᴇɴᴇᴛ ᴜɴᴄᴀᴄʜᴇᴅ' : '';
+
+    // ─── LANGUAGES ───────────────────────────────────────────────
+    let langStr = '';
+    if (Array.isArray(stream.languages) && stream.languages.length > 0) {
+        langStr = stream.languages.join(' | ');
+    } else if (stream.language) {
+        langStr = stream.language;
+    } else {
+        const nameHasSub  = (stream.name  || '').includes('SUB');
+        const titleHasSub = (stream.title || '').includes('SUB');
+        langStr = (nameHasSub || titleHasSub) ? '🇯🇵 🇮🇹' : '🇮🇹';
+    }
+
+    // ─── TITLE FIELD (description) ───────────────────────────────
+    const lines = [];
+    if (typeStr)      lines.push(typeStr);
+    lines.push(` 🕋  ${indexerStr}`);
+    lines.push('');
+    if (encodeQuality) {
+        lines.push(` 🕋  ${encodeQuality}`);
+        lines.push('');
+    }
+    if (audioStr) {
+        lines.push(` 🕋  ${audioStr}`);
+        lines.push('');
+    }
+    if (seadexStr) {
+        lines.push(seadexStr);
+        lines.push('');
+    }
+    if (usenetStr) lines.push(usenetStr);
+    if (langStr)   lines.push(` 🕋  ${langStr}`);
+
+    const titleText = lines.join('\n');
+
+    // ─── BEHAVIOR HINTS ──────────────────────────────────────────
     const behaviorHints = stream.behaviorHints || {};
     if (stream.headers) {
         behaviorHints.proxyHeaders = behaviorHints.proxyHeaders || {};
         behaviorHints.proxyHeaders.request = stream.headers;
-        // Also support "headers" in behaviorHints directly (Stremio extension)
-        behaviorHints.headers = stream.headers;
-        // Ensure notWebReady is true when using proxyHeaders
+        behaviorHints.headers    = stream.headers;
         behaviorHints.notWebReady = true;
     }
 
+    // ─── RETURN ──────────────────────────────────────────────────
     return {
-        ...stream, // Keep original properties
+        ...stream,
         name: finalName,
         title: titleText,
-        // Ensure language is set for Stremio/Nuvio sorting
-        language: language,
-        // Mark as formatted
+        language: langStr,
         _nuvio_formatted: true,
         behaviorHints: behaviorHints,
-        // Explicitly ensure root headers are preserved for Nuvio
         headers: stream.headers
     };
 }
