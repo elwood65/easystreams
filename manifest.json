@@ -3,7 +3,6 @@
   "version": "1.0.42",
   "logo": "https://raw.githubusercontent.com/drg25ii/easystreams/main/public/logo.svg",
   "scrapers": [
-    // ... restul providerilor tăi rămân exact la fel ...
     {
       "id": "easystreams-eurostreaming",
       "name": "EuroStreaming",
