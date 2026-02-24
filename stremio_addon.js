@@ -387,7 +387,7 @@ app.get('/', (req, res) => {
         <div class="main-content">
             <div class="addon-card">
                 <div class="addon-logo">
-                    📺
+                    🕋
                 </div>
                 <h1>${manifest.name}</h1>
                 <div class="version">Version ${manifest.version}</div>
@@ -454,6 +454,7 @@ const PORT = process.env.PORT || 7000;
 app.listen(PORT, () => {
     console.log(`Stremio Addon running at http://localhost:${PORT}`);
 });
+
 
 
 
