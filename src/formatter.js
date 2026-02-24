@@ -57,7 +57,7 @@ function formatStream(stream, providerName, options = {}) {
     const proxiedStr = isProxied ? '🔐' : '';
     const cacheStr   = isCached  ? '⚡️ ' : '⏳ ';
     const tagSuffix  = visualStr ? ` ${visualStr}` : '';
-    cost finaName = '${proxiedStr}${cacheStr}${addonName}  ${resLabel}${tagSuffix}'.trim()
+    const finaName = '${proxiedStr}${cacheStr}${addonName}  ${resLabel}${tagSuffix}'.trim()
     // ─── STREAM TYPE ─────────────────────────────────────────────
     const streamType = (stream.type || '').toLowerCase();
     const typeLabels = {
