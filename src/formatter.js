@@ -6,7 +6,7 @@ function formatStream(stream, providerName) {
     // const sTitle = (stream.title || "").toLowerCase();
     // if (server.includes('mixdrop') || sName.includes('mixdrop') || sTitle.includes('mixdrop')) {
     //     return null;
-    // }{addon.name} 
+    // }
 
     // Format resolution
     let quality = stream.quality || '';
