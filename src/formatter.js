@@ -7,7 +7,7 @@ function formatStream(stream, providerName) {
     else if (quality === '720p') quality = 'HD';
     else if (quality === '576p' || quality === '480p' || quality === '360p' || quality === '240p') quality = 'Low Quality';
     else if (!quality || quality.toLowerCase() === 'auto') quality = 'Unknown';
-    
+
     // Format title with emoji
     let title = ⁠ 📁 ${stream.title || 'Stream'} ⁠;
 
@@ -18,16 +18,16 @@ function formatStream(stream, providerName) {
         else if (stream.title && (stream.title.includes('SUB ITA') || stream.title.includes('SUB'))) language = '🇯🇵 🇮🇹';
         else language = '🇮🇹';
     }
-    
+
     // Add details
     let details = [];
     if (stream.size) details.push(⁠ 📦 ${stream.size} ⁠);
-    
+
     const desc = details.join(' | ');
-    
+
     // Construct pName from stream.name or server or providerName
     let pName = stream.name || stream.server || providerName;
-    
+
     // Clean SUB ITA or ITA from provider name if present
     if (pName) {
         pName = pName
@@ -38,18 +38,18 @@ function formatStream(stream, providerName) {
             .replace(/\\[\s*\\]/g, '')
             .trim();
     }
-    
+
     // Capitalize if using the key name
     if (pName === providerName) {
         pName = pName.charAt(0).toUpperCase() + pName.slice(1);
     }
-    
+
     // Add antenna emoji if provider exists
     if (pName) {
         pName = ⁠ 📡 ${pName} ⁠;
     }
 
-    // ✅ MODIFICARE: quality pe prima linie, addon/provider pe a doua linie
+    // Quality on first line, provider on second line
     const finalName = quality && pName
         ? ⁠ ${quality}\n${pName} ⁠
         : quality || pName;
