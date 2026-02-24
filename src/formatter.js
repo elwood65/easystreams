@@ -1,3 +1,4 @@
+
 function formatStream(stream, providerName) {
     // 1. Filter MixDrop (removed from shared formatter, handled in Stremio addon separately)
     // const server = (stream.server || "").toLowerCase();
@@ -9,15 +10,15 @@ function formatStream(stream, providerName) {
 
     // Format resolution
     let quality = stream.quality || '';
-    if (quality === '2160p') quality = '4K UHD';
-    else if (quality === '1440p') quality = 'QHD';
-    else if (quality === '1080p') quality = 'FHD';
-    else if (quality === '720p') quality = 'HD';
-    else if (quality === '576p' || quality === '480p' || quality === '360p' || quality === '240p') quality = 'Low Quality';
+    if (quality === '2160p') quality = '🔥4K UHD';
+    else if (quality === '1440p') quality = '✨ QHD';
+    else if (quality === '1080p') quality = '🚀 FHD';
+    else if (quality === '720p') quality = '💿 HD';
+    else if (quality === '576p' || quality === '480p' || quality === '360p' || quality === '240p') quality = '💩 Low Quality';
     else if (!quality || quality.toLowerCase() === 'auto') quality = 'Unknown';
     
     // Format title with emoji
-    let title = ⁠ 📁 ${stream.title || 'Stream'} ⁠;
+    let title = `📁 ${stream.title || 'Stream'}`;
 
     // Extract language if not present
     let language = stream.language;
@@ -29,7 +30,7 @@ function formatStream(stream, providerName) {
     
     // Add details
     let details = [];
-    if (stream.size) details.push(⁠ 📦 ${stream.size} ⁠);
+    if (stream.size) details.push(`📦 ${stream.size}`);
     
     const desc = details.join(' | ');
     
@@ -57,14 +58,14 @@ function formatStream(stream, providerName) {
     
     // Add antenna emoji if provider exists
     if (pName) {
-        pName = ⁠ 📡 ${pName} ⁠;
+        pName = `📡 ${pName}`;
     }
 
     const finalName = quality || pName;
 
-    let titleText = ⁠ ${title}\n${pName} ⁠;
+    let titleText = `${title}\n${pName}`;
     if (desc) titleText += ` | ${desc}`;
-    if (language) titleText += ⁠ \n🗣️ ${language} ⁠;
+    if (language) titleText += `\n🗣️ ${language}`;
 
     // Move headers to behaviorHints if present, but keep original for compatibility
     const behaviorHints = stream.behaviorHints || {};
