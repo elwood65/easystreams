@@ -17,8 +17,7 @@ function formatStream(stream, providerName) {
     else if (quality === '576p') quality = 'EasyStreans UNK';
     else if (quality === '480p') quality = 'EasyStreans UNK';
     eles if (quality === '360p') quality = 'EasyStreans UNK';
-    eles if (quality === '240p') quality = 'EasyStreans UNK'; 
-    else if (!quality || quality.toLowerCase() === 'auto') quality = 'Unknown';
+    eles if (quality === '240p') quality = 'EasyStreans UNK';
     
     // Format title with emoji
     let title = `🕋 ${stream.title || 'Stream'}`;
