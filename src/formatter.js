@@ -10,11 +10,11 @@ function formatStream(stream, providerName) {
 
     // Format resolution
     let quality = stream.quality || '';
-    if (quality === '2160p') quality = '🔥4K UHD';
-    else if (quality === '1440p') quality = '✨ QHD';
-    else if (quality === '1080p') quality = '🚀 FHD';
-    else if (quality === '720p') quality = '💿 HD';
-    else if (quality === '576p' || quality === '480p' || quality === '360p' || quality === '240p') quality = '💩 Low Quality';
+    if (quality === '2160p') quality = 'EasyStreams 4K UHD';
+    else if (quality === '1440p') quality = 'EasyStreams QHD';
+    else if (quality === '1080p') quality = 'EasyStreams FHD';
+    else if (quality === '720p') quality = 'EasyStreams HD';
+    else if (quality === 'EasyStreams 576p' || quality === 'EasySreams 480p' || quality === 'EasyStreams 360p' || quality === 'EasyStreams 240p') quality = 'EasyStreams Low Quality';
     else if (!quality || quality.toLowerCase() === 'auto') quality = 'Unknown';
     
     // Format title with emoji
