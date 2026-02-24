@@ -50,7 +50,8 @@ function formatStream(stream, providerName, options = {}) {
 
     // ─── NAME FIELD ──────────────────────────────────────────────
     const proxiedStr = isProxied ? '🔐' : '';
-    
+    const cacheStr = isCached ? '⚡️ ' : ' ⚡️';
+
     
     // Asamblăm finalName folosind concatenare simplă și sigură (fără backticks buclucașe)
     let finalName = proxiedStr + cacheStr + addonName + "  " + resLabel;
