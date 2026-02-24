@@ -14,7 +14,10 @@ function formatStream(stream, providerName) {
     else if (quality === '1440p') quality = 'EasyStreams  QHD';
     else if (quality === '1080p') quality = 'EasyStreams  FHD';
     else if (quality === '720p') quality = 'EasyStreams  HD';
-    else if (quality === '576p' || quality === '480p' || quality === '360p' || quality === '240p') quality = 'Low Quality';
+    else if (quality === '576p') quality = 'EasyStreans UNK';
+    else if (quality === '480p') quality = 'EasyStreans UNK';
+    eles if (quality === '360p') quality = 'EasyStreans UNK';
+    eles if (quality === '240p') quality = 'EasyStreans UNK'; 
     else if (!quality || quality.toLowerCase() === 'auto') quality = 'Unknown';
     
     // Format title with emoji
