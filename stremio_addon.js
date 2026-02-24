@@ -25,7 +25,7 @@ const providers = {
 
 const builder = new addonBuilder({
     id: 'org.bestia.easystreams',
-    version: '1.0.43',
+    version: '1.0.0',
     name: 'Easy Streams',
     description: 'Italian Streams providers',
     catalogs: [],
@@ -454,5 +454,6 @@ const PORT = process.env.PORT || 7000;
 app.listen(PORT, () => {
     console.log(`Stremio Addon running at http://localhost:${PORT}`);
 });
+
 
 
