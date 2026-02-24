@@ -1,7 +1,7 @@
 {
   "name": "EasyStreams",
   "version": "1.0.41",
-  "logo": "https://raw.githubusercontent.com/user-ul-tau/nume-repo/main/public/logo.svg",
+  "logo": "https://raw.github.com/drg25ii/easystreams/blob/main/public/logo.svg",
   "scrapers": [
     {
       "id": "easystreams-eurostreaming",
