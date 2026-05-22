@@ -25,10 +25,20 @@ def main():
     cookie_str = headers.pop('Cookie', None) or headers.pop('cookie', None)
     cookies = []
     if cookie_str:
-        for c in cookie_str.split(';'):
-            if '=' in c:
-                name, value = c.strip().split('=', 1)
-                cookies.append({'name': name, 'value': value})
+        from urllib.parse import urlparse
+        domain = urlparse(args.url).hostname
+        if domain:
+            if not domain.startswith('.'):
+                domain = '.' + domain
+            for c in cookie_str.split(';'):
+                if '=' in c:
+                    name, value = c.strip().split('=', 1)
+                    cookies.append({
+                        'name': name,
+                        'value': value,
+                        'domain': domain,
+                        'path': '/'
+                    })
 
     # Kwargs for the fetch method, as per Scrapling 0.2.x
     fetch_kwargs = {
