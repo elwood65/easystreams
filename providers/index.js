@@ -12388,17 +12388,36 @@ var require_cinemacity = __commonJS({
       }
       return entries;
     }
-    function fetchSitemapEntries() {
+    function fetchSitemapEntries(providerContext = null) {
       return __async(this, null, function* () {
         if (sitemapCache && sitemapCache.expiresAt > Date.now()) {
           return sitemapCache.entries;
         }
         console.log("[CinemaCity] Fetching sitemap catalog...");
+        const proxyUrl = providerContext && providerContext.proxyUrl || (typeof global !== "undefined" && global.CF_PROXY_URL ? global.CF_PROXY_URL : null);
+        let xml;
         const cookies = getSessionCookies();
-        const xml = yield fetchHtml(SITEMAP_URL, {
+        const headers = {
           "Accept": "application/xml,text/xml,text/html;q=0.9,*/*;q=0.8",
           "Cookie": cookies
-        });
+        };
+        if (proxyUrl) {
+          const separator = proxyUrl.includes("?") ? "&" : "?";
+          const targetUrl2 = `${proxyUrl}${separator}url=${encodeURIComponent(SITEMAP_URL)}`;
+          console.log(`[CinemaCity] Fetching sitemap via CF Proxy: ${targetUrl2}`);
+          const response = yield fetchWithTimeout(targetUrl2, {
+            timeout: FETCH_TIMEOUT,
+            headers: __spreadValues({
+              "User-Agent": USER_AGENT
+            }, headers)
+          });
+          if (!response.ok) {
+            throw new Error(`Proxy HTTP ${response.status}`);
+          }
+          xml = yield response.text();
+        } else {
+          xml = yield fetchHtml(SITEMAP_URL, headers);
+        }
         const entries = parseSitemapEntries(xml);
         sitemapCache = {
           entries,
@@ -12480,7 +12499,7 @@ var require_cinemacity = __commonJS({
         }
       });
     }
-    function searchBySitemap(id, providerType) {
+    function searchBySitemap(id, providerType, providerContext = null) {
       return __async(this, null, function* () {
         const expectedImdbId = /^tt\d{5,}$/i.test(String(id || "").trim()) ? String(id).trim().toLowerCase() : null;
         const metadata = yield getTmdbMetadata(id, providerType);
@@ -12497,7 +12516,7 @@ var require_cinemacity = __commonJS({
         const expectedKind = providerType === "movie" ? "movies" : "tv-series";
         let entries;
         try {
-          entries = yield fetchSitemapEntries();
+          entries = yield fetchSitemapEntries(providerContext);
         } catch (e) {
           const status = getHttpStatusFromError(e);
           if (status === 403 || status === 404 || status === 503 || isCloudflareBlockedError(e)) {
@@ -12795,7 +12814,7 @@ var require_cinemacity = __commonJS({
           const isStremioAddon = providerContext && providerContext.__requestContext === true;
           const proxyUrl = providerContext && providerContext.proxyUrl || (typeof global !== "undefined" && global.CF_PROXY_URL ? global.CF_PROXY_URL : null);
           const proxyPassword = providerContext && providerContext.proxyPassword || "";
-          let searchResult = yield searchBySitemap(imdbId, providerType);
+          let searchResult = yield searchBySitemap(imdbId, providerType, providerContext);
           if (!searchResult || !searchResult.url) {
             return [];
           }

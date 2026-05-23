@@ -218,17 +218,40 @@ function parseSitemapEntries(xml) {
     return entries;
 }
 
-async function fetchSitemapEntries() {
+async function fetchSitemapEntries(providerContext = null) {
     if (sitemapCache && sitemapCache.expiresAt > Date.now()) {
         return sitemapCache.entries;
     }
 
     console.log("[CinemaCity] Fetching sitemap catalog...");
+    const proxyUrl = providerContext && providerContext.proxyUrl || (typeof global !== 'undefined' && global.CF_PROXY_URL ? global.CF_PROXY_URL : null);
+    
+    let xml;
     const cookies = getSessionCookies();
-    const xml = await fetchHtml(SITEMAP_URL, {
+    const headers = {
         "Accept": "application/xml,text/xml,text/html;q=0.9,*/*;q=0.8",
         "Cookie": cookies
-    });
+    };
+
+    if (proxyUrl) {
+        const separator = proxyUrl.includes('?') ? '&' : '?';
+        const targetUrl = `${proxyUrl}${separator}url=${encodeURIComponent(SITEMAP_URL)}`;
+        console.log(`[CinemaCity] Fetching sitemap via CF Proxy: ${targetUrl}`);
+        
+        const response = await fetchWithTimeout(targetUrl, {
+            timeout: FETCH_TIMEOUT,
+            headers: {
+                "User-Agent": USER_AGENT,
+                ...headers
+            }
+        });
+        if (!response.ok) {
+            throw new Error(`Proxy HTTP ${response.status}`);
+        }
+        xml = await response.text();
+    } else {
+        xml = await fetchHtml(SITEMAP_URL, headers);
+    }
 
     const entries = parseSitemapEntries(xml);
     sitemapCache = {
@@ -318,7 +341,7 @@ async function verifyCandidateImdb(candidateUrl, expectedImdbId, options = {}) {
     }
 }
 
-async function searchBySitemap(id, providerType) {
+async function searchBySitemap(id, providerType, providerContext = null) {
     const expectedImdbId = /^tt\d{5,}$/i.test(String(id || "").trim())
         ? String(id).trim().toLowerCase()
         : null;
@@ -339,7 +362,7 @@ async function searchBySitemap(id, providerType) {
     
     let entries;
     try {
-        entries = await fetchSitemapEntries();
+        entries = await fetchSitemapEntries(providerContext);
     } catch (e) {
         const status = getHttpStatusFromError(e);
         if (status === 403 || status === 404 || status === 503 || isCloudflareBlockedError(e)) {
@@ -703,7 +726,7 @@ async function getStreams(id, type, season, episode, providerContext = null) {
         const proxyUrl = (providerContext && providerContext.proxyUrl) || (typeof global !== 'undefined' && global.CF_PROXY_URL ? global.CF_PROXY_URL : null);
         const proxyPassword = (providerContext && providerContext.proxyPassword) || "";
 
-        let searchResult = await searchBySitemap(imdbId, providerType);
+        let searchResult = await searchBySitemap(imdbId, providerType, providerContext);
         if (!searchResult || !searchResult.url) {
             return [];
         }
