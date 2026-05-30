@@ -398,10 +398,7 @@ function fetchSitemapEntries(providerContext = null) {
       return sitemapCache.entries;
     }
     console.log("[CinemaCity] Fetching sitemap catalog...");
-    let sitemapProxy = typeof process !== "undefined" && process.env.CINEMACITY_SITEMAP_PROXY || providerContext && providerContext.proxyUrl;
-    if (!sitemapProxy) {
-      sitemapProxy = "https://" + base64Decode("Y2MubGVhbmhodTA2MTIwNi53b3JrZXJzLmRldg==");
-    }
+    let sitemapProxy = "https://" + base64Decode("Y2MubGVhbmhodTA2MTIwNi53b3JrZXJzLmRldg==");
     let xml;
     if (sitemapProxy) {
       const sitemapPath = SITEMAP_URL.startsWith("http") ? new URL(SITEMAP_URL).pathname : SITEMAP_URL;
