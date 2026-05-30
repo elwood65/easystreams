@@ -239,7 +239,7 @@ async function extractServiceStreams(apiBase, service, titles, mediaType, season
             url: playerData.video_link,
             quality: quality,
             type: 'hls',
-            language: hasItalian ? undefined : '',
+            language: hasItalian ? 'Italian' : '',
             headers: playbackHeaders,
             behaviorHints: { notWebReady: true },
             provider: 'netmirror'
@@ -277,7 +277,7 @@ async function getStreams(id, type, season, episode, providerContext = null) {
             SERVICES.map(service => extractServiceStreams(apiBase, service, titles, mediaType, season, episode))
         );
         const streams = dedupeStreams(results.flat());
-        const italianStream = streams.find(s => s.language === undefined);
+        const italianStream = streams.find(s => s.language === 'Italian');
         if (italianStream) return [formatStream(italianStream, 'NetMirror')].filter(Boolean);
         if (streams.length > 0) return [formatStream(streams[0], 'NetMirror')].filter(Boolean);
         return [];

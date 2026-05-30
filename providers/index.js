@@ -395,10 +395,14 @@ var require_formatter = __commonJS({
       else if (!quality || ["auto", "unknown", "unknow"].includes(String(quality).toLowerCase())) quality = "\u{1F4BF} HD";
       let title = `\u{1F4C1} ${stream.title || "Stream"}`;
       let language = stream.language;
-      if (language === void 0 || language === null) {
-        if (stream.name && (stream.name.includes("SUB ITA") || stream.name.includes("SUB"))) language = "\u{1F1EF}\u{1F1F5} \u{1F1EE}\u{1F1F9}";
-        else if (stream.title && (stream.title.includes("SUB ITA") || stream.title.includes("SUB"))) language = "\u{1F1EF}\u{1F1F5} \u{1F1EE}\u{1F1F9}";
-        else language = "\u{1F1EE}\u{1F1F9}";
+      if (language === "Italian") {
+        language = "\u{1F1EE}\u{1F1F9}";
+      } else if (stream.name && (stream.name.includes("SUB ITA") || stream.name.includes("SUB"))) {
+        language = "\u{1F1EF}\u{1F1F5} \u{1F1EE}\u{1F1F9}";
+      } else if (stream.title && (stream.title.includes("SUB ITA") || stream.title.includes("SUB"))) {
+        language = "\u{1F1EF}\u{1F1F5} \u{1F1EE}\u{1F1F9}";
+      } else if (language === void 0 || language === null) {
+        language = "";
       }
       let details = [];
       if (stream.size) details.push(`\u{1F4E6} ${stream.size}`);
@@ -738,7 +742,8 @@ var require_guardahd = __commonJS({
                     easyProxySourceUrl: streamUrl,
                     headers: extracted.headers,
                     quality: normalizedQuality,
-                    type: "direct"
+                    type: "direct",
+                    language: "Italian"
                   });
                 }
               } else if (streamUrl.includes("dhcplay") || streamUrl.includes("vibuxer")) {
@@ -757,7 +762,8 @@ var require_guardahd = __commonJS({
                     easyProxySourceUrl: streamUrl,
                     headers: extracted.headers,
                     quality: normalizedQuality,
-                    type: "direct"
+                    type: "direct",
+                    language: "Italian"
                   });
                 }
               } else if (streamUrl.includes("dropload") || streamUrl.includes("dr0pstream")) {
@@ -8893,6 +8899,7 @@ var require_guardoserie = __commonJS({
                     title: displayName,
                     quality: getQualityFromName2(quality),
                     type: "direct",
+                    language: "Italian",
                     behaviorHints: s.behaviorHints
                   }, "Guardoserie");
                 })));
@@ -8908,7 +8915,8 @@ var require_guardoserie = __commonJS({
                     name: `Guardoserie - Uqload`,
                     title: displayName,
                     quality: getQualityFromName2(quality),
-                    type: "direct"
+                    type: "direct",
+                    language: "Italian"
                   }, "Guardoserie")];
                 }
               } else if (playerLink.includes("mixdrop") || playerLink.includes("m1xdrop")) {
@@ -8923,7 +8931,8 @@ var require_guardoserie = __commonJS({
                     name: `Guardoserie - MixDrop`,
                     title: displayName,
                     quality: getQualityFromName2(quality),
-                    type: "direct"
+                    type: "direct",
+                    language: "Italian"
                   }, "Guardoserie")];
                 }
               }
@@ -9191,7 +9200,7 @@ var require_streamingcommunity = __commonJS({
               easyProxySourceUrl: rawPageUrl,
               quality: "1080p",
               type: "direct",
-              language: "",
+              language: "Italian",
               behaviorHints: {
                 notWebReady: false
               }
@@ -9247,7 +9256,7 @@ var require_streamingcommunity = __commonJS({
                 notWebReady: false
               }
             };
-            if (hasItalianAudio || hasOriginalItalian) result.language = void 0;
+            if (hasItalianAudio || hasOriginalItalian) result.language = "Italian";
             else result.language = "";
             return [formatStream(result, "StreamingCommunity")].filter((s) => s !== null);
           } else {
@@ -12871,7 +12880,7 @@ var require_cinemacity = __commonJS({
             url: streamUrl,
             quality: "1080p",
             type: "hls",
-            language: hasItalian ? void 0 : "",
+            language: hasItalian ? "Italian" : "",
             behaviorHints: { notWebReady: true },
             headers: {
               "Referer": "https://cinemacity.cc/",
@@ -13110,7 +13119,7 @@ var require_vidxgo2 = __commonJS({
                 title: displayName,
                 quality: getQualityFromName2(quality),
                 type: "direct",
-                language: hasItalian ? void 0 : ""
+                language: hasItalian ? "Italian" : ""
               });
             }
             mark("vidxgo_extracted", { ok: Boolean(vidxgoStream && vidxgoStream.url) });
@@ -13398,7 +13407,7 @@ var require_netmirror = __commonJS({
             url: playerData.video_link,
             quality,
             type: "hls",
-            language: hasItalian ? void 0 : "",
+            language: hasItalian ? "Italian" : "",
             headers: playbackHeaders,
             behaviorHints: { notWebReady: true },
             provider: "netmirror"
@@ -13433,7 +13442,7 @@ var require_netmirror = __commonJS({
             SERVICES.map((service) => extractServiceStreams(apiBase, service, titles, mediaType, season, episode))
           );
           const streams = dedupeStreams(results.flat());
-          const italianStream = streams.find((s) => s.language === void 0);
+          const italianStream = streams.find((s) => s.language === "Italian");
           if (italianStream) return [formatStream(italianStream, "NetMirror")].filter(Boolean);
           if (streams.length > 0) return [formatStream(streams[0], "NetMirror")].filter(Boolean);
           return [];
@@ -13554,7 +13563,7 @@ var require_altadefinizionestreaming = __commonJS({
           headers,
           quality,
           type: "direct",
-          language: hasItalian ? void 0 : ""
+          language: hasItalian ? "Italian" : ""
         });
       });
     }
@@ -13582,7 +13591,8 @@ var require_altadefinizionestreaming = __commonJS({
           easyProxySourceUrl: mixdropUrl,
           headers: extracted.headers,
           quality: "720p",
-          type: "direct"
+          type: "direct",
+          language: "Italian"
         });
       });
     }

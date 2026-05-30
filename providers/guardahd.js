@@ -395,10 +395,14 @@ var require_formatter = __commonJS({
       else if (!quality || ["auto", "unknown", "unknow"].includes(String(quality).toLowerCase())) quality = "\u{1F4BF} HD";
       let title = `\u{1F4C1} ${stream.title || "Stream"}`;
       let language = stream.language;
-      if (language === void 0 || language === null) {
-        if (stream.name && (stream.name.includes("SUB ITA") || stream.name.includes("SUB"))) language = "\u{1F1EF}\u{1F1F5} \u{1F1EE}\u{1F1F9}";
-        else if (stream.title && (stream.title.includes("SUB ITA") || stream.title.includes("SUB"))) language = "\u{1F1EF}\u{1F1F5} \u{1F1EE}\u{1F1F9}";
-        else language = "\u{1F1EE}\u{1F1F9}";
+      if (language === "Italian") {
+        language = "\u{1F1EE}\u{1F1F9}";
+      } else if (stream.name && (stream.name.includes("SUB ITA") || stream.name.includes("SUB"))) {
+        language = "\u{1F1EF}\u{1F1F5} \u{1F1EE}\u{1F1F9}";
+      } else if (stream.title && (stream.title.includes("SUB ITA") || stream.title.includes("SUB"))) {
+        language = "\u{1F1EF}\u{1F1F5} \u{1F1EE}\u{1F1F9}";
+      } else if (language === void 0 || language === null) {
+        language = "";
       }
       let details = [];
       if (stream.size) details.push(`\u{1F4E6} ${stream.size}`);
@@ -736,7 +740,8 @@ function getStreams(id, type, season, episode) {
                 easyProxySourceUrl: streamUrl,
                 headers: extracted.headers,
                 quality: normalizedQuality,
-                type: "direct"
+                type: "direct",
+                language: "Italian"
               });
             }
           } else if (streamUrl.includes("dhcplay") || streamUrl.includes("vibuxer")) {
@@ -755,7 +760,8 @@ function getStreams(id, type, season, episode) {
                 easyProxySourceUrl: streamUrl,
                 headers: extracted.headers,
                 quality: normalizedQuality,
-                type: "direct"
+                type: "direct",
+                language: "Italian"
               });
             }
           } else if (streamUrl.includes("dropload") || streamUrl.includes("dr0pstream")) {

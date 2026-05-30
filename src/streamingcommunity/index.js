@@ -269,7 +269,7 @@ async function getStreams(id, type, season, episode, providerContext = null) {
         easyProxySourceUrl: rawPageUrl,
         quality: "1080p",
         type: "direct",
-        language: '',
+        language: 'Italian',
         behaviorHints: {
           notWebReady: false
         }
@@ -334,7 +334,7 @@ async function getStreams(id, type, season, episode, providerContext = null) {
           notWebReady: false
         }
       };
-      if (hasItalianAudio || hasOriginalItalian) result.language = undefined;
+      if (hasItalianAudio || hasOriginalItalian) result.language = 'Italian';
       else result.language = '';
 
       return [formatStream(result, "StreamingCommunity")].filter(s => s !== null);
