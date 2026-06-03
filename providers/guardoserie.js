@@ -8567,12 +8567,17 @@ if (!IS_SERVER) {
             const pageHtml = yield smartFetch(result.url, getGuardoserieBaseUrl(), {
               provider: "guardoserie"
             });
+            const hasTmdbId = tmdbId && new RegExp(`[\\"\\'\\/]${tmdbId}[\\"\\'\\/]`).test(pageHtml);
+            const hasTmdbImages = /image\.tmdb\.org\/t\/p\//i.test(pageHtml);
             let foundYear = null;
             const pubYearMatch = pageHtml.match(/pubblicazione.*?release-year\/(\d{4})/i);
             if (pubYearMatch) foundYear = pubYearMatch[1];
             if (!foundYear) {
               const anyYearMatch = pageHtml.match(/release-year\/(\d{4})/i);
               if (anyYearMatch) foundYear = anyYearMatch[1];
+            }
+            if (hasTmdbId) {
+              return { url: result.url, score: 3, exact: true };
             }
             if (foundYear) {
               const targetYear = parseInt(year);
@@ -8581,7 +8586,11 @@ if (!IS_SERVER) {
               if (fYear === targetYear || Math.abs(fYear - targetYear) <= maxDiff) {
                 return { url: result.url, score: matchScore, exact: true };
               }
-            } else if (matchScore >= 2) {
+            }
+            if (hasTmdbImages && matchScore >= 2) {
+              return { url: result.url, score: matchScore, exact: false };
+            }
+            if (matchScore >= 2 && !foundYear) {
               return { url: result.url, score: matchScore, exact: false };
             }
           } catch (e) {

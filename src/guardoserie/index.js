@@ -542,6 +542,12 @@ if (!IS_SERVER) {
                         provider: 'guardoserie'
                     });
 
+                    // Check TMDB ID nell'HTML (data attribute, class, url, meta)
+                    const hasTmdbId = tmdbId && new RegExp(`[\\"\\'\\/]${tmdbId}[\\"\\'\\/]`).test(pageHtml);
+
+                    // Check presenza immagini poster TMDB (segnale di contenuto valido)
+                    const hasTmdbImages = /image\.tmdb\.org\/t\/p\//i.test(pageHtml);
+
                     let foundYear = null;
                     const pubYearMatch = pageHtml.match(/pubblicazione.*?release-year\/(\d{4})/i);
                     if (pubYearMatch) foundYear = pubYearMatch[1];
@@ -551,6 +557,11 @@ if (!IS_SERVER) {
                         if (anyYearMatch) foundYear = anyYearMatch[1];
                     }
 
+                    // TMDB ID match perfetto: conferma immediata
+                    if (hasTmdbId) {
+                        return { url: result.url, score: 3, exact: true };
+                    }
+
                     if (foundYear) {
                         const targetYear = parseInt(year);
                         const fYear = parseInt(foundYear);
@@ -558,7 +569,14 @@ if (!IS_SERVER) {
                         if (fYear === targetYear || Math.abs(fYear - targetYear) <= maxDiff) {
                             return { url: result.url, score: matchScore, exact: true };
                         }
-                    } else if (matchScore >= 2) {
+                    }
+
+                    // TMDB images + buon match titolo: accetta anche senza anno
+                    if (hasTmdbImages && matchScore >= 2) {
+                        return { url: result.url, score: matchScore, exact: false };
+                    }
+
+                    if (matchScore >= 2 && !foundYear) {
                         return { url: result.url, score: matchScore, exact: false };
                     }
                 } catch (e) {
