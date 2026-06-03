@@ -110,8 +110,8 @@ async function smartFetch(url, domain, options = {}) {
     if (session.url) {
         // Hostname replacement logic removed as it caused "Invalid URL" errors
     }
-    if (!session.cookies && provider === 'guardoserie') {
-        console.warn(`[CF-HANDLER][${provider}] Attenzione: richiesta avviata senza cookie di sessione!`);
+    if (provider === 'guardoserie') {
+        console.log(`[CF-HANDLER][${provider}] Cookie di sessione${session.cookies ? ' trovati' : ' non trovati, Scrapling li otterrà freschi'}.`);
     }
 
     const doRequest = async (targetUrl, sess, reqOptions = {}) => {
@@ -277,6 +277,96 @@ async function smartFetch(url, domain, options = {}) {
         }
     };
 
+    const execScraplingBypass = async (err, existingSession, forceScrapling = false) => {
+        if (!forceScrapling && options.skipBypassOnFailure) {
+            throw err;
+        }
+        const errorMsg = err.code === 'ECONNABORTED' || err.message?.includes('timeout') ? 'Timeout richiesta' : (err.response?.status || err.message);
+        console.log(`[CF-HANDLER][${provider}] Fallimento sessione (${errorMsg}), avvio bypass Scrapling...`);
+
+        const challengeUrl = err.response && err.response.url ? err.response.url : url;
+        const redirectedData = await retryWithRedirectedSession(challengeUrl);
+        if (redirectedData !== null) {
+            return redirectedData;
+        }
+
+        let bypassUrl = url;
+        let bypassProvider = provider;
+        try {
+            const challengeHost = getHost(challengeUrl);
+            if (challengeHost && challengeHost !== urlHost) {
+                bypassUrl = challengeUrl;
+                bypassProvider = providerFromHost(challengeHost);
+            }
+        } catch {}
+        const bypassSessionFile = sessionFileForProvider(bypassProvider);
+
+        if (fs.existsSync(bypassSessionFile)) {
+            try { fs.unlinkSync(bypassSessionFile); } catch (e) {}
+        }
+
+        // Passa i cookie esistenti a Scrapling per riutilizzarli
+        const bypassOptions = {
+            ...options,
+            timeout: Math.max(options.timeout || 30000, 30000),
+        };
+        if (existingSession && existingSession.cookies) {
+            bypassOptions.headers = {
+                ...(bypassOptions.headers || {}),
+                'Cookie': existingSession.cookies,
+                'User-Agent': existingSession.userAgent || bypassOptions.headers?.['user-agent'],
+                ...(existingSession.requestHeaders || {})
+            };
+        }
+
+        const newSession = await getClearance(bypassUrl, bypassProvider, bypassOptions);
+        if (!newSession) {
+            throw new Error(`Bypass fallito per ${bypassProvider}`);
+        }
+
+        if (options.meta && newSession.url) {
+            options.meta.finalUrl = newSession.url;
+        }
+
+        if (isUsefulHtml(newSession.response)) {
+            return newSession.response;
+        }
+
+        let finalUrl = bypassUrl === url ? currentUrl : bypassUrl;
+        if (newSession.url) {
+            try {
+                const oldUrlObj = new URL(bypassUrl);
+                const newUrlObj = new URL(newSession.url);
+                const newSessionHasSpecificTarget = newUrlObj.pathname !== '/' ||
+                    Boolean(newUrlObj.search) ||
+                    Boolean(newUrlObj.hash) ||
+                    oldUrlObj.hostname === newUrlObj.hostname;
+                if (newSessionHasSpecificTarget) {
+                    finalUrl = newUrlObj.toString();
+                    if (options.meta) options.meta.finalUrl = finalUrl;
+                } else if (oldUrlObj.hostname !== newUrlObj.hostname) {
+                    oldUrlObj.hostname = newUrlObj.hostname;
+                    oldUrlObj.protocol = newUrlObj.protocol;
+                    finalUrl = oldUrlObj.toString();
+                    if (options.meta) options.meta.finalUrl = finalUrl;
+                }
+            } catch (e) {}
+        }
+
+        const res = await doRequest(finalUrl, newSession);
+        updateMetaFinalUrl(res);
+        return res.data;
+    };
+
+    // Per guardoserie: salta axios e usa direttamente Scrapling coi cookie esistenti
+    if (provider === 'guardoserie') {
+        console.log(`[CF-HANDLER][${provider}] Bypass diretto Scrapling (senza tentativo axios)...`);
+        const fakeErr = new Error('Forzato bypass Scrapling per guardoserie');
+        fakeErr.code = 'ECONNABORTED';
+        fakeErr.response = { status: 403, url: currentUrl };
+        return await execScraplingBypass(fakeErr, session, true);
+    }
+
     try {
         const res = await doRequest(currentUrl, session, options);
         updateMetaFinalUrl(res);
@@ -284,7 +374,6 @@ async function smartFetch(url, domain, options = {}) {
             throw { response: res };
         }
         if (session.cookies) {
-            // Update cache if session was updated during request (rare but possible)
             if (res.headers['set-cookie']) {
                  // Note: we don't update file here to avoid blocking
             }
@@ -292,73 +381,7 @@ async function smartFetch(url, domain, options = {}) {
         return res.data;
     } catch (err) {
         if (isCfStatus(err)) {
-            if (options.skipBypassOnFailure) {
-                throw err;
-            }
-            const errorMsg = err.code === 'ECONNABORTED' || err.message?.includes('timeout') ? 'Timeout richiesta' : (err.response?.status || err.message);
-            console.log(`[CF-HANDLER][${provider}] Fallimento sessione (${errorMsg}), avvio bypass Scrapling...`);
-
-            const challengeUrl = err.response && err.response.url ? err.response.url : url;
-            const redirectedData = await retryWithRedirectedSession(challengeUrl);
-            if (redirectedData !== null) {
-                return redirectedData;
-            }
-
-            let bypassUrl = url;
-            let bypassProvider = provider;
-            try {
-                const challengeHost = getHost(challengeUrl);
-                if (challengeHost && challengeHost !== urlHost) {
-                    bypassUrl = challengeUrl;
-                    bypassProvider = providerFromHost(challengeHost);
-                }
-            } catch {}
-            const bypassSessionFile = sessionFileForProvider(bypassProvider);
-
-            // Usiamo direttamente getClearance che ha già il suo sistema di lock interno
-            if (fs.existsSync(bypassSessionFile)) {
-                try { fs.unlinkSync(bypassSessionFile); } catch (e) {}
-            }
-
-            const newSession = await getClearance(bypassUrl, bypassProvider, options);
-            if (!newSession) {
-                throw new Error(`Bypass fallito per ${bypassProvider}`);
-            }
-
-            if (options.meta && newSession.url) {
-                options.meta.finalUrl = newSession.url;
-            }
-            
-            // Se FlareSolverr ha già restituito il contenuto della pagina, usiamolo
-            if (isUsefulHtml(newSession.response)) {
-                return newSession.response;
-            }
-
-            // Altrimenti procediamo con una nuova richiesta usando i cookie (se presenti)
-            let finalUrl = bypassUrl === url ? currentUrl : bypassUrl;
-            if (newSession.url) {
-                try {
-                    const oldUrlObj = new URL(bypassUrl);
-                    const newUrlObj = new URL(newSession.url);
-                    const newSessionHasSpecificTarget = newUrlObj.pathname !== '/' ||
-                        Boolean(newUrlObj.search) ||
-                        Boolean(newUrlObj.hash) ||
-                        oldUrlObj.hostname === newUrlObj.hostname;
-                    if (newSessionHasSpecificTarget) {
-                        finalUrl = newUrlObj.toString();
-                        if (options.meta) options.meta.finalUrl = finalUrl;
-                    } else if (oldUrlObj.hostname !== newUrlObj.hostname) {
-                        oldUrlObj.hostname = newUrlObj.hostname;
-                        oldUrlObj.protocol = newUrlObj.protocol;
-                        finalUrl = oldUrlObj.toString();
-                        if (options.meta) options.meta.finalUrl = finalUrl;
-                    }
-                } catch (e) {}
-            }
-
-            const res = await doRequest(finalUrl, newSession);
-            updateMetaFinalUrl(res);
-            return res.data;
+            return await execScraplingBypass(err, session);
         }
         throw err;
     }
