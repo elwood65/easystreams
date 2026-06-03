@@ -359,7 +359,8 @@ async function smartFetch(url, domain, options = {}) {
     };
 
     // Per guardoserie: salta axios e usa direttamente Scrapling coi cookie esistenti
-    if (provider === 'guardoserie') {
+    // Rispetta skipBypassOnFailure per richieste AJAX che devono fallire velocemente
+    if (provider === 'guardoserie' && !options.skipBypassOnFailure) {
         console.log(`[CF-HANDLER][${provider}] Bypass diretto Scrapling (senza tentativo axios)...`);
         const fakeErr = new Error('Forzato bypass Scrapling per guardoserie');
         fakeErr.code = 'ECONNABORTED';
