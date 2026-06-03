@@ -25,7 +25,6 @@ if (!IS_SERVER) {
     // SIAMO SU SERVER: carichiamo le librerie pesanti
     const { smartFetch } = require('../utils/cf_handler');
     const { hasActiveBypass } = require('../../cf_bypass');
-    let guardoserieDisabledUntil = 0;
     const { USER_AGENT, getProxiedUrl } = require('../extractors/common');
     const { extractLoadm, extractUqload, extractDropLoad, extractMixDrop, extractSuperVideo } = require('../extractors');
     const STEP_BENCH_ENABLED = String(process.env.PROVIDER_STEP_BENCH || '').trim().toLowerCase() === '1';

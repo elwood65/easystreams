@@ -8337,7 +8337,6 @@ if (!IS_SERVER) {
   getGuardoserieBaseUrl2 = getGuardoserieBaseUrl, getMappingApiUrl2 = getMappingApiUrl, normalizeConfigBoolean2 = normalizeConfigBoolean, getMappingLanguage2 = getMappingLanguage, extractEpisodeUrlFromSeriesPage2 = extractEpisodeUrlFromSeriesPage, normalizePlayerLink2 = normalizePlayerLink, extractPlayerLinksFromHtml2 = extractPlayerLinksFromHtml, getQualityFromName2 = getQualityFromName, normalizeBaseUrl2 = normalizeBaseUrl, resolveCandidateUrl2 = resolveCandidateUrl, isSameHost2 = isSameHost, extractSearchResultsFromHtml2 = extractSearchResultsFromHtml, decodeEntitiesBasic2 = decodeEntitiesBasic, normalizeTitle2 = normalizeTitle, slugifyTitle2 = slugifyTitle, extractTitleFromHtml2 = extractTitleFromHtml, htmlMatchesTitle2 = htmlMatchesTitle;
   const { smartFetch } = require_cf_handler();
   const { hasActiveBypass } = require_cf_bypass();
-  let guardoserieDisabledUntil = 0;
   const { USER_AGENT, getProxiedUrl } = require_common();
   const { extractLoadm, extractUqload, extractDropLoad, extractMixDrop, extractSuperVideo } = require_extractors();
   const STEP_BENCH_ENABLED = String(process.env.PROVIDER_STEP_BENCH || "").trim().toLowerCase() === "1";
