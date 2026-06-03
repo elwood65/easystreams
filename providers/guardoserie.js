@@ -482,7 +482,10 @@ var require_cf_bypass = __commonJS({
         return bypassPromise;
       });
     }
-    module2.exports = { getClearance, getStats: () => ({ active: activeGlobalRequests, queued: globalQueue.length }) };
+    function hasActiveBypass(provider) {
+      return activeBypasses.has(provider);
+    }
+    module2.exports = { getClearance, hasActiveBypass, getStats: () => ({ active: activeGlobalRequests, queued: globalQueue.length }) };
   }
 });
 
@@ -8333,6 +8336,7 @@ if (!IS_SERVER) {
   };
   getGuardoserieBaseUrl2 = getGuardoserieBaseUrl, getMappingApiUrl2 = getMappingApiUrl, normalizeConfigBoolean2 = normalizeConfigBoolean, getMappingLanguage2 = getMappingLanguage, extractEpisodeUrlFromSeriesPage2 = extractEpisodeUrlFromSeriesPage, normalizePlayerLink2 = normalizePlayerLink, extractPlayerLinksFromHtml2 = extractPlayerLinksFromHtml, getQualityFromName2 = getQualityFromName, normalizeBaseUrl2 = normalizeBaseUrl, resolveCandidateUrl2 = resolveCandidateUrl, isSameHost2 = isSameHost, extractSearchResultsFromHtml2 = extractSearchResultsFromHtml, decodeEntitiesBasic2 = decodeEntitiesBasic, normalizeTitle2 = normalizeTitle, slugifyTitle2 = slugifyTitle, extractTitleFromHtml2 = extractTitleFromHtml, htmlMatchesTitle2 = htmlMatchesTitle;
   const { smartFetch } = require_cf_handler();
+  const { hasActiveBypass } = require_cf_bypass();
   let guardoserieDisabledUntil = 0;
   const { USER_AGENT, getProxiedUrl } = require_common();
   const { extractLoadm, extractUqload, extractDropLoad, extractMixDrop, extractSuperVideo } = require_extractors();
@@ -8489,7 +8493,7 @@ if (!IS_SERVER) {
           var _a2, _b2;
           const searchStartedAt = Date.now();
           try {
-            yield smartFetch(baseUrl, baseUrl, { provider: "guardoserie" });
+            yield smartFetch(baseUrl, baseUrl, { provider: "guardoserie", skipBypassOnFailure: true, timeout: 5e3 });
           } catch (e) {
             console.log(`[Guardoserie] Could not initialize session from homepage`);
           }
@@ -8507,7 +8511,7 @@ if (!IS_SERVER) {
               },
               provider: "guardoserie",
               skipBypassOnFailure: true,
-              timeout: 1e3
+              timeout: 3e3
             });
             const results = extractSearchResultsFromHtml(ajaxHtml, baseUrl);
             mark("search_query_done", { q: query, ms: Date.now() - searchStartedAt, results: results.length, source: "ajax" });
@@ -8568,8 +8572,9 @@ if (!IS_SERVER) {
             const pageHtml = yield smartFetch(result.url, getGuardoserieBaseUrl(), {
               provider: "guardoserie"
             });
+            const posterFile = posterPath ? posterPath.split("/").pop() : "";
+            const hasExactPoster = posterFile && pageHtml.includes(posterFile);
             const hasTmdbId = tmdbId && new RegExp(`[\\"\\'\\/]${tmdbId}[\\"\\'\\/]`).test(pageHtml);
-            const hasTmdbImages = /image\.tmdb\.org\/t\/p\//i.test(pageHtml);
             let foundYear = null;
             const pubYearMatch = pageHtml.match(/pubblicazione.*?release-year\/(\d{4})/i);
             if (pubYearMatch) foundYear = pubYearMatch[1];

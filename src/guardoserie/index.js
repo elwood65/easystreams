@@ -24,6 +24,7 @@ if (!IS_SERVER) {
 
     // SIAMO SU SERVER: carichiamo le librerie pesanti
     const { smartFetch } = require('../utils/cf_handler');
+    const { hasActiveBypass } = require('../../cf_bypass');
     let guardoserieDisabledUntil = 0;
     const { USER_AGENT, getProxiedUrl } = require('../extractors/common');
     const { extractLoadm, extractUqload, extractDropLoad, extractMixDrop, extractSuperVideo } = require('../extractors');
@@ -446,8 +447,8 @@ if (!IS_SERVER) {
                 const searchStartedAt = Date.now();
 
                 try {
-                    // Pre-fetch della homepage per inizializzare i cookie/bypass se necessario
-                    await smartFetch(baseUrl, baseUrl, { provider: 'guardoserie' });
+                    // Pre-fetch della homepage (skip bypass per non bloccare)
+                    await smartFetch(baseUrl, baseUrl, { provider: 'guardoserie', skipBypassOnFailure: true, timeout: 5000 });
                 } catch (e) {
                     console.log(`[Guardoserie] Could not initialize session from homepage`);
                 }
@@ -467,7 +468,7 @@ if (!IS_SERVER) {
                         },
                         provider: 'guardoserie',
                         skipBypassOnFailure: true,
-                        timeout: 1000
+                        timeout: 3000
                     });
 
                     const results = extractSearchResultsFromHtml(ajaxHtml, baseUrl);
@@ -543,11 +544,12 @@ if (!IS_SERVER) {
                         provider: 'guardoserie'
                     });
 
+                    // Check poster TMDB specifico per questo film/serie
+                    const posterFile = posterPath ? posterPath.split('/').pop() : '';
+                    const hasExactPoster = posterFile && pageHtml.includes(posterFile);
+
                     // Check TMDB ID nell'HTML (data attribute, class, url, meta)
                     const hasTmdbId = tmdbId && new RegExp(`[\\"\\'\\/]${tmdbId}[\\"\\'\\/]`).test(pageHtml);
-
-                    // Check presenza immagini poster TMDB (segnale di contenuto valido)
-                    const hasTmdbImages = /image\.tmdb\.org\/t\/p\//i.test(pageHtml);
 
                     let foundYear = null;
                     const pubYearMatch = pageHtml.match(/pubblicazione.*?release-year\/(\d{4})/i);

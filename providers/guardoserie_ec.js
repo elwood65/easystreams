@@ -483,7 +483,10 @@ var require_cf_bypass = __commonJS({
         return bypassPromise;
       });
     }
-    module2.exports = { getClearance, getStats: () => ({ active: activeGlobalRequests, queued: globalQueue.length }) };
+    function hasActiveBypass(provider) {
+      return activeBypasses.has(provider);
+    }
+    module2.exports = { getClearance, hasActiveBypass, getStats: () => ({ active: activeGlobalRequests, queued: globalQueue.length }) };
   }
 });
 
@@ -8336,6 +8339,7 @@ var require_guardoserie = __commonJS({
       };
       getGuardoserieBaseUrl = getGuardoserieBaseUrl2, getMappingApiUrl = getMappingApiUrl2, normalizeConfigBoolean = normalizeConfigBoolean2, getMappingLanguage = getMappingLanguage2, extractEpisodeUrlFromSeriesPage = extractEpisodeUrlFromSeriesPage2, normalizePlayerLink = normalizePlayerLink2, extractPlayerLinksFromHtml = extractPlayerLinksFromHtml2, getQualityFromName = getQualityFromName2, normalizeBaseUrl = normalizeBaseUrl2, resolveCandidateUrl = resolveCandidateUrl2, isSameHost = isSameHost2, extractSearchResultsFromHtml = extractSearchResultsFromHtml2, decodeEntitiesBasic = decodeEntitiesBasic2, normalizeTitle = normalizeTitle2, slugifyTitle = slugifyTitle2, extractTitleFromHtml = extractTitleFromHtml2, htmlMatchesTitle = htmlMatchesTitle2;
       const { smartFetch } = require_cf_handler();
+      const { hasActiveBypass } = require_cf_bypass();
       let guardoserieDisabledUntil = 0;
       const { USER_AGENT, getProxiedUrl } = require_common();
       const { extractLoadm, extractUqload, extractDropLoad, extractMixDrop, extractSuperVideo } = require_extractors();
@@ -8492,7 +8496,7 @@ var require_guardoserie = __commonJS({
               var _a2, _b2;
               const searchStartedAt = Date.now();
               try {
-                yield smartFetch(baseUrl, baseUrl, { provider: "guardoserie" });
+                yield smartFetch(baseUrl, baseUrl, { provider: "guardoserie", skipBypassOnFailure: true, timeout: 5e3 });
               } catch (e) {
                 console.log(`[Guardoserie] Could not initialize session from homepage`);
               }
@@ -8510,7 +8514,7 @@ var require_guardoserie = __commonJS({
                   },
                   provider: "guardoserie",
                   skipBypassOnFailure: true,
-                  timeout: 1e3
+                  timeout: 3e3
                 });
                 const results = extractSearchResultsFromHtml2(ajaxHtml, baseUrl);
                 mark("search_query_done", { q: query, ms: Date.now() - searchStartedAt, results: results.length, source: "ajax" });
@@ -8571,8 +8575,9 @@ var require_guardoserie = __commonJS({
                 const pageHtml = yield smartFetch(result.url, getGuardoserieBaseUrl2(), {
                   provider: "guardoserie"
                 });
+                const posterFile = posterPath ? posterPath.split("/").pop() : "";
+                const hasExactPoster = posterFile && pageHtml.includes(posterFile);
                 const hasTmdbId = tmdbId && new RegExp(`[\\"\\'\\/]${tmdbId}[\\"\\'\\/]`).test(pageHtml);
-                const hasTmdbImages = /image\.tmdb\.org\/t\/p\//i.test(pageHtml);
                 let foundYear = null;
                 const pubYearMatch = pageHtml.match(/pubblicazione.*?release-year\/(\d{4})/i);
                 if (pubYearMatch) foundYear = pubYearMatch[1];
