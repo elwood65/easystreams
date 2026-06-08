@@ -1,5 +1,12 @@
 const CryptoJS = require('crypto-js');
 const { USER_AGENT } = require('./common');
+const STREAMINGCOMMUNITY_PROXY = (typeof process !== 'undefined' && process.env.STREAMINGCOMMUNITY_PROXY) || '';
+let ProxyAgent = null;
+try {
+    ProxyAgent = require('undici').ProxyAgent;
+} catch (_) {
+    ProxyAgent = null;
+}
 
 /**
  * Extractor for Loadm (loadm.cam)
@@ -21,15 +28,25 @@ async function extractLoadm(playerUrl, referer = 'guardoserie.horse') {
 
         const queryParams = `id=${encodeURIComponent(id)}&w=2560&h=1440&r=${encodeURIComponent(referer)}`;
 
-        // Loadm extraction must run direct (no worker/proxy), otherwise provider-side
-        // anti-bot checks may reject the request path.
-        const response = await fetch(`${apiUrl}?${queryParams}`, {
+        let response = await fetch(`${apiUrl}?${queryParams}`, {
             headers: {
                 'User-Agent': USER_AGENT,
                 'Referer': baseUrl,
                 'X-Requested-With': 'XMLHttpRequest'
             }
         });
+
+        if (!response.ok && response.status === 429 && STREAMINGCOMMUNITY_PROXY && ProxyAgent) {
+            console.log(`[Loadm] Rate limited, retrying via SOCKS5 proxy`);
+            response = await fetch(`${apiUrl}?${queryParams}`, {
+                headers: {
+                    'User-Agent': USER_AGENT,
+                    'Referer': baseUrl,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                dispatcher: new ProxyAgent(STREAMINGCOMMUNITY_PROXY)
+            });
+        }
 
         if (!response.ok) {
             const errorBody = await response.text().catch(() => '');
