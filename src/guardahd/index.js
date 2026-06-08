@@ -217,6 +217,7 @@ function getStreams(id, type, season, episode) {
             console.log(`[GuardaHD] Attempting StreamHG extraction for ${streamUrl}`);
             const extracted = await extractStreamHG(streamUrl);
             if (extracted && extracted.url) {
+              fetch(extracted.url, { method: "GET", headers: { "User-Agent": USER_AGENT, "Referer": streamUrl } }).catch(() => {});
               let quality = getQualityFromUrl(extracted.url) || "HD";
               const playlistQuality = await checkQualityFromPlaylist(extracted.url, extracted.headers || {});
               if (playlistQuality) quality = playlistQuality;
