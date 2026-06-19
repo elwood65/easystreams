@@ -1,6 +1,6 @@
 {
   "name": "EasyStreams",
-  "version": "1.1.92",
+  "version": "1.1.93",
   "scrapers": [
     {
       "id": "easystreams-guardoserie",
@@ -96,7 +96,7 @@
     {
       "id": "easystreams-altadefinizionestreaming",
       "name": "AltadefinizioneStreaming",
-      "version": "1.0.6",
+      "version": "1.0.7",
       "description": "Movies and Series from AltadefinizioneStreaming",
       "resources": ["stream"],
       "contentLanguage": ["it"],
