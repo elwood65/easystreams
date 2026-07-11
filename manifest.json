@@ -1,6 +1,6 @@
 {
   "name": "EasyStreams",
-  "version": "1.1.99",
+  "version": "1.2.0",
   "scrapers": [
     {
       "id": "easystreams-guardoserie",
@@ -103,19 +103,6 @@
       "formats": ["mp4", "m3u8"],
       "idPrefixes": ["tmdb:", "tt"],
       "filename": "providers/altadefinizionestreaming.js",
-      "supportedTypes": ["movie", "tv", "series"],
-      "enabled": true
-    },
-    {
-      "id": "easystreams-netmirror",
-      "name": "NetMirror",
-      "version": "1.0.2",
-      "description": "Movies and Series from NetMirror",
-      "resources": ["stream"],
-      "contentLanguage": ["it"],
-      "formats": ["m3u8"],
-      "idPrefixes": ["tmdb:", "tt"],
-      "filename": "providers/netmirror.js",
       "supportedTypes": ["movie", "tv", "series"],
       "enabled": true
     }
