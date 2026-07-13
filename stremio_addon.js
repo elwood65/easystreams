@@ -2141,12 +2141,10 @@ builder.defineStreamHandler(async ({ type, id, config = {} }) => {
             if (isA_SC && !isB_SC) return -1;
             if (!isA_SC && isB_SC) return 1;
 
-            // 2. Language Priority (ITA > SUB ITA > Others)
+            // 2. Language Priority (ITA first)
             const getLangScore = (stream) => {
                 const lang = stream.language || '';
-                if (lang === '🇮🇹') return 2;
-                if (lang === '🇯🇵') return 1;
-                return 0;
+                return lang === '🇮🇹' ? 1 : 0;
             };
 
             const langScoreA = getLangScore(a);
