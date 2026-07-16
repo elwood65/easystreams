@@ -290,7 +290,7 @@ if (!IS_SERVER) {
         // Corrupt check: always try full extraction first.
         // If corrupt, extractVidxGo returns null -> return [] immediately.
         // If valid and EasyProxy active, discard extracted result (EasyProxy will re-extract).
-        const extracted = yield extractVidxGo(vidxgoUrl, 'https://altadefinizione.you/');
+        const extracted = yield extractVidxGo(vidxgoUrl, 'https://v.vidxgo.co/');
         if (!extracted) {
           return [];
         }

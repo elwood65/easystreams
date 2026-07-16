@@ -7423,7 +7423,7 @@ var require_vidxgo = __commonJS({
       "Upgrade-Insecure-Requests": "1",
       "Sec-Fetch-Dest": "iframe",
       "Sec-Fetch-Mode": "navigate",
-      "Sec-Fetch-Site": "none",
+      "Sec-Fetch-Site": "same-origin",
       "DNT": "1",
       "Priority": "u=0, i"
     };
@@ -7438,7 +7438,7 @@ var require_vidxgo = __commonJS({
     var XOR_PATTERN = /var\s+\w+\s*=\s*'([\w]+)'\s*,?\s*d\s*=\s*atob\s*\(\s*'([A-Za-z0-9+/=]+)'\s*\)/g;
     var CURRENT_SRC_PATTERN = /\bcurrentSrc\s*=\s*["'](https?:[^"']+?\.m3u8[^"']*)["']/;
     var CORRUPT_PLAYER_PATTERN = /player-container[^>]*\bcorrupt\b/i;
-    function extractVidxGo(url, referer = "https://altadefinizione.you/") {
+    function extractVidxGo(url, referer = "https://v.vidxgo.co/") {
       return __async(this, null, function* () {
         try {
           if (url.startsWith("//")) url = "https:" + url;
@@ -8660,7 +8660,7 @@ var require_animeunity = __commonJS({
               if (Array.isArray(vixStreams) && vixStreams.length > 0) {
                 streams.push(
                   ...vixStreams.map((stream) => __spreadProps(__spreadValues({}, stream), {
-                    easyProxySourceUrl: embedUrl2,
+                    easyProxySourceUrl: embedUrl2.replace("vixcloud.co", "unitv.mom"),
                     name: `AnimeUnity - VixCloud${labelSuffix}`,
                     title: displayTitle,
                     language: stream.language || streamLanguage

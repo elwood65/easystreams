@@ -247,7 +247,7 @@ var require_vidxgo = __commonJS({
       "Upgrade-Insecure-Requests": "1",
       "Sec-Fetch-Dest": "iframe",
       "Sec-Fetch-Mode": "navigate",
-      "Sec-Fetch-Site": "none",
+      "Sec-Fetch-Site": "same-origin",
       "DNT": "1",
       "Priority": "u=0, i"
     };
@@ -262,7 +262,7 @@ var require_vidxgo = __commonJS({
     var XOR_PATTERN = /var\s+\w+\s*=\s*'([\w]+)'\s*,?\s*d\s*=\s*atob\s*\(\s*'([A-Za-z0-9+/=]+)'\s*\)/g;
     var CURRENT_SRC_PATTERN = /\bcurrentSrc\s*=\s*["'](https?:[^"']+?\.m3u8[^"']*)["']/;
     var CORRUPT_PLAYER_PATTERN = /player-container[^>]*\bcorrupt\b/i;
-    function extractVidxGo(url, referer = "https://altadefinizione.you/") {
+    function extractVidxGo(url, referer = "https://v.vidxgo.co/") {
       return __async(this, null, function* () {
         try {
           if (url.startsWith("//")) url = "https:" + url;
@@ -709,7 +709,7 @@ var require_vidxgo2 = __commonJS({
             const vidxgoUrl = isMovie ? `https://v.vidxgo.co/${imdbId}` : `https://v.vidxgo.co/${imdbId}/${effectiveSeason}/${effectiveEpisode}`;
             const shouldUseEasyProxy = Boolean(providerContext && providerContext.proxyUrl);
             let vidxgoStream = null;
-            const extracted = yield extractVidxGo(vidxgoUrl, "https://altadefinizione.you/");
+            const extracted = yield extractVidxGo(vidxgoUrl, "https://v.vidxgo.co/");
             if (!extracted) {
               return [];
             }

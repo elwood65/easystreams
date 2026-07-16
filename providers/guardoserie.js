@@ -8085,7 +8085,7 @@ var require_vidxgo = __commonJS({
       "Upgrade-Insecure-Requests": "1",
       "Sec-Fetch-Dest": "iframe",
       "Sec-Fetch-Mode": "navigate",
-      "Sec-Fetch-Site": "none",
+      "Sec-Fetch-Site": "same-origin",
       "DNT": "1",
       "Priority": "u=0, i"
     };
@@ -8100,7 +8100,7 @@ var require_vidxgo = __commonJS({
     var XOR_PATTERN = /var\s+\w+\s*=\s*'([\w]+)'\s*,?\s*d\s*=\s*atob\s*\(\s*'([A-Za-z0-9+/=]+)'\s*\)/g;
     var CURRENT_SRC_PATTERN = /\bcurrentSrc\s*=\s*["'](https?:[^"']+?\.m3u8[^"']*)["']/;
     var CORRUPT_PLAYER_PATTERN = /player-container[^>]*\bcorrupt\b/i;
-    function extractVidxGo(url, referer = "https://altadefinizione.you/") {
+    function extractVidxGo(url, referer = "https://v.vidxgo.co/") {
       return __async(this, null, function* () {
         try {
           if (url.startsWith("//")) url = "https:" + url;
@@ -8210,7 +8210,7 @@ if (!IS_SERVER) {
   };
 } else {
   let getGuardoserieBaseUrl = function() {
-    return "https://guardoserie.courses";
+    return "https://guardoserie.study";
   }, getMappingApiUrl = function() {
     return "https://animemapping.realbestia.com";
   }, normalizeConfigBoolean = function(value) {
@@ -8738,7 +8738,7 @@ if (!IS_SERVER) {
       const streamPromises = playerLinks.map((playerLink) => __async(null, null, function* () {
         try {
           if (playerLink.includes("loadm")) {
-            const domain = "guardoserie.courses";
+            const domain = "guardoserie.study";
             const extracted = yield extractLoadm(playerLink, domain);
             return yield Promise.all((extracted || []).map((s) => __async(null, null, function* () {
               let quality = "HD";

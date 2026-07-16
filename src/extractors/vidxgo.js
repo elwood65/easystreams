@@ -10,7 +10,7 @@ const VIDXGO_HEADERS = {
   "Upgrade-Insecure-Requests": "1",
   "Sec-Fetch-Dest": "iframe",
   "Sec-Fetch-Mode": "navigate",
-  "Sec-Fetch-Site": "none",
+  "Sec-Fetch-Site": "same-origin",
   "DNT": "1",
   "Priority": "u=0, i",
 };
@@ -28,7 +28,7 @@ const XOR_PATTERN = /var\s+\w+\s*=\s*'([\w]+)'\s*,?\s*d\s*=\s*atob\s*\(\s*'([A-Z
 const CURRENT_SRC_PATTERN = /\bcurrentSrc\s*=\s*["'](https?:[^"']+?\.m3u8[^"']*)["']/;
 const CORRUPT_PLAYER_PATTERN = /player-container[^>]*\bcorrupt\b/i;
 
-async function extractVidxGo(url, referer = 'https://altadefinizione.you/') {
+async function extractVidxGo(url, referer = 'https://v.vidxgo.co/') {
   try {
     if (url.startsWith("//")) url = "https:" + url;
 
