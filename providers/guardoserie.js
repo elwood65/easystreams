@@ -844,7 +844,7 @@ var require_cf_handler = __commonJS({
               try {
                 const oldUrlObj = new URL(bypassUrl);
                 const newUrlObj = new URL(newSession.url);
-                const newSessionHasSpecificTarget = newUrlObj.pathname !== "/" || Boolean(newUrlObj.search) || Boolean(newUrlObj.hash) || oldUrlObj.hostname === newUrlObj.hostname;
+                const newSessionHasSpecificTarget = newUrlObj.pathname !== "/" || Boolean(newUrlObj.search) || Boolean(newUrlObj.hash);
                 if (newSessionHasSpecificTarget) {
                   finalUrl = newUrlObj.toString();
                   if (options.meta) options.meta.finalUrl = finalUrl;

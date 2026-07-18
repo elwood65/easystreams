@@ -765,7 +765,7 @@ var require_cf_handler = __commonJS({
               try {
                 const oldUrlObj = new URL(bypassUrl);
                 const newUrlObj = new URL(newSession.url);
-                const newSessionHasSpecificTarget = newUrlObj.pathname !== "/" || Boolean(newUrlObj.search) || Boolean(newUrlObj.hash) || oldUrlObj.hostname === newUrlObj.hostname;
+                const newSessionHasSpecificTarget = newUrlObj.pathname !== "/" || Boolean(newUrlObj.search) || Boolean(newUrlObj.hash);
                 if (newSessionHasSpecificTarget) {
                   finalUrl = newUrlObj.toString();
                   if (options.meta) options.meta.finalUrl = finalUrl;
@@ -1073,7 +1073,31 @@ if (!IS_SERVER) {
       if (sitemapCache && sitemapCache.expiresAt > Date.now()) {
         return sitemapCache.entries;
       }
-      console.log("[CinemaCity] Fetching sitemap catalog...");
+      const fs = require("fs");
+      const path = require("path");
+      const SITEMAP_CACHE_FILE = path.join(process.cwd(), "cinemacity-sitemap.json");
+      const SITEMAP_DISK_CACHE_MS = 1 * 60 * 60 * 1e3;
+      if (IS_SERVER && fs.existsSync(SITEMAP_CACHE_FILE)) {
+        try {
+          const stats = fs.statSync(SITEMAP_CACHE_FILE);
+          const ageMs = Date.now() - stats.mtimeMs;
+          if (ageMs < SITEMAP_DISK_CACHE_MS) {
+            const fileContent = fs.readFileSync(SITEMAP_CACHE_FILE, "utf8");
+            const cachedEntries = JSON.parse(fileContent);
+            if (Array.isArray(cachedEntries) && cachedEntries.length > 0) {
+              sitemapCache = {
+                entries: cachedEntries,
+                expiresAt: Date.now() + SITEMAP_CACHE_MS
+              };
+              console.log(`[CinemaCity] Sitemap caricata da cache su disco: ${cachedEntries.length} elementi`);
+              return cachedEntries;
+            }
+          }
+        } catch (err) {
+          console.warn("[CinemaCity] Errore lettura cache sitemap da disco:", err.message);
+        }
+      }
+      console.log("[CinemaCity] Fetching sitemap catalog da remoto...");
       try {
         const { smartFetch } = require_cf_handler();
         const xml = yield smartFetch(SITEMAP_URL, BASE_URL, { provider: "cinemacity" });
@@ -1082,9 +1106,28 @@ if (!IS_SERVER) {
           entries,
           expiresAt: Date.now() + SITEMAP_CACHE_MS
         };
+        if (IS_SERVER && entries.length > 0) {
+          try {
+            fs.writeFileSync(SITEMAP_CACHE_FILE, JSON.stringify(entries));
+            console.log(`[CinemaCity] Sitemap salvata su disco: ${entries.length} elementi`);
+          } catch (err) {
+            console.warn("[CinemaCity] Errore scrittura cache sitemap su disco:", err.message);
+          }
+        }
         console.log(`[CinemaCity] Sitemap catalog loaded: ${entries.length} entries`);
         return entries;
       } catch (e) {
+        if (IS_SERVER && fs.existsSync(SITEMAP_CACHE_FILE)) {
+          try {
+            const fileContent = fs.readFileSync(SITEMAP_CACHE_FILE, "utf8");
+            const cachedEntries = JSON.parse(fileContent);
+            if (Array.isArray(cachedEntries) && cachedEntries.length > 0) {
+              console.log(`[CinemaCity] Fetch remoto sitemap fallito, uso sitemap scaduta su disco: ${cachedEntries.length} elementi`);
+              return cachedEntries;
+            }
+          } catch (fallbackErr) {
+          }
+        }
         console.error("[CinemaCity] Error loading sitemap catalog:", e);
         throw e;
       }

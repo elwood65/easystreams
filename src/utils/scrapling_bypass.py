@@ -161,13 +161,21 @@ def main():
                 js = """(a) => fetch(a.url,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:a.body})
                         .then(r=>r.text().then(t=>({status:r.status,url:r.url,text:t})))
                         .catch(e=>({status:0,url:'',text:e.message}))"""
-                try:
-                    r = page.evaluate(js, dict(url=args.url, body=args.data))
-                    status_code = r.get("status", 200)
-                    html = r.get("text", "")
-                    current_url = r.get("url", args.url)
-                except Exception as e:
-                    sys.stderr.write(f"POST fallito: {e}\n")
+                eval_success = False
+                for attempt in range(5):
+                    try:
+                        page.wait_for_load_state("domcontentloaded", timeout=5000)
+                        r = page.evaluate(js, dict(url=args.url, body=args.data))
+                        status_code = r.get("status", 200)
+                        html = r.get("text", "")
+                        current_url = r.get("url", args.url)
+                        eval_success = True
+                        break
+                    except Exception as e:
+                        sys.stderr.write(f"POST evaluate tentativo {attempt+1} fallito: {e}\n")
+                        time.sleep(2)
+                if not eval_success:
+                    sys.stderr.write(f"POST evaluate fallito definitivamente\n")
             else:
                 try:
                     page.wait_for_load_state("domcontentloaded", timeout=10000)

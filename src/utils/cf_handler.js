@@ -342,8 +342,7 @@ async function smartFetch(url, domain, options = {}) {
                     const newUrlObj = new URL(newSession.url);
                     const newSessionHasSpecificTarget = newUrlObj.pathname !== '/' ||
                         Boolean(newUrlObj.search) ||
-                        Boolean(newUrlObj.hash) ||
-                        oldUrlObj.hostname === newUrlObj.hostname;
+                        Boolean(newUrlObj.hash);
                     if (newSessionHasSpecificTarget) {
                         finalUrl = newUrlObj.toString();
                         if (options.meta) options.meta.finalUrl = finalUrl;
